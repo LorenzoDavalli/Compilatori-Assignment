@@ -17,16 +17,16 @@ LLVMContext Context;
 
 typedef std::vector<std::vector<llvm::Value*>> instructionMatrix;
 
-Value *ricercaRicorsivaMatrice(instructionMatrix m, Value *reg, int iterationIndex, int c, std::vector<Instruction*> &optimazibleInstructions) {
+Value *ricercaRicorsivaMatrice(instructionMatrix tabellaIstruzioniBinarie, Value *reg, int iterationIndex, int valoreCumulativo, std::vector<Instruction*> &optimazibleInstructions) {
 	for (int i = iterationIndex - 1; i >= 0; i--) {
-		BinaryOperator *previous_inst = dyn_cast<BinaryOperator>(m[i][0]);
+		BinaryOperator *previous_inst = dyn_cast<BinaryOperator>(tabellaIstruzioniBinarie[i][0]);
 		BinaryOperator *current_inst = dyn_cast<BinaryOperator>(reg);
 
 		if (!previous_inst || !current_inst || !previous_inst->isIdenticalTo(current_inst)) {
 			continue;
 		}
 		
-		ConstantInt* CI = dyn_cast<ConstantInt>(m[i][2]);
+		ConstantInt* CI = dyn_cast<ConstantInt>(tabellaIstruzioniBinarie[i][2]);
 		if (!CI) {
 			errs() << "Il valore non è una costante intera.\n";
 		continue;
@@ -38,15 +38,15 @@ Value *ricercaRicorsivaMatrice(instructionMatrix m, Value *reg, int iterationInd
 		}
 
 		if (previous_inst->getOpcode() == Instruction::Add || previous_inst->getOpcode() == Instruction::Sub) {
-			c += intValue;
+			valoreCumulativo += intValue;
 
 			
 			optimazibleInstructions.push_back(previous_inst);
 
-			if (c == 0) {
-				return m[i][1];
+			if (valoreCumulativo == 0) {
+				return tabellaIstruzioniBinarie[i][1];
 			} else {
-				return ricercaRicorsivaMatrice(m, m[i][1], i, c, optimazibleInstructions);
+				return ricercaRicorsivaMatrice(tabellaIstruzioniBinarie, tabellaIstruzioniBinarie[i][1], i, valoreCumulativo, optimazibleInstructions);
 			}
 		}
 	}
@@ -54,7 +54,7 @@ Value *ricercaRicorsivaMatrice(instructionMatrix m, Value *reg, int iterationInd
 }
 
 bool runOnBasicBlock(BasicBlock &B) {
-instructionMatrix m;
+instructionMatrix tabellaIstruzioniBinarie;
 
 for (auto iter = B.begin(); iter != B.end(); ++iter) {
 	Instruction &I = *iter;
@@ -62,7 +62,7 @@ for (auto iter = B.begin(); iter != B.end(); ++iter) {
 		if (isa<Constant>(bin_inst->getOperand(1))) {
 			std::vector<llvm::Value*> newRow = { bin_inst, bin_inst->getOperand(0), bin_inst->getOperand(1) };
 			if (newRow.size() == 3) {
-				m.push_back(newRow);
+				tabellaIstruzioniBinarie.push_back(newRow);
 			}
 		}
 	}
@@ -72,13 +72,13 @@ std::vector<Instruction*> uselessInstructions;
 std::vector<std::pair<Instruction*, Value*>> replacements;
 
 
-for (int i = m.size()-1; i >= 0; i--) {
-	Value *Operand1 = m[i][1];
-	Value *Operand2 = m[i][2];
-	llvm::BinaryOperator *current_inst = llvm::dyn_cast<llvm::BinaryOperator>(m[i][0]);
+for (int i = tabellaIstruzioniBinarie.size()-1; i >= 0; i--) {
+	Value *Operand1 = tabellaIstruzioniBinarie[i][1];
+	Value *Operand2 = tabellaIstruzioniBinarie[i][2];
+	llvm::BinaryOperator *current_inst = llvm::dyn_cast<llvm::BinaryOperator>(tabellaIstruzioniBinarie[i][0]);
 
 	if (current_inst->getOpcode() == Instruction::Add || current_inst->getOpcode() == Instruction::Sub) {
-		if (llvm::ConstantInt* constant_value = llvm::dyn_cast<llvm::ConstantInt>(m[i][2])) {
+		if (llvm::ConstantInt* constant_value = llvm::dyn_cast<llvm::ConstantInt>(tabellaIstruzioniBinarie[i][2])) {
 			int intValue = constant_value->getZExtValue();
 			if (current_inst->getOpcode() == Instruction::Sub) {
 				intValue = intValue * -1;
@@ -86,7 +86,7 @@ for (int i = m.size()-1; i >= 0; i--) {
 			
 			std::vector<Instruction*> optimazibleInstructions;
 
-			Value *ris = ricercaRicorsivaMatrice(m, Operand1, i, intValue, optimazibleInstructions);
+			Value *ris = ricercaRicorsivaMatrice(tabellaIstruzioniBinarie, Operand1, i, intValue, optimazibleInstructions);
 
 			if (ris != nullptr) {
 				
