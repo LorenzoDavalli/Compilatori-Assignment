@@ -106,7 +106,7 @@ void visitaDomTree(DomTreeNodeBase < BasicBlock > * rn, SmallPtrSet < DomTreeNod
                             }
 
                         }
-                        if (isInv && OpInv) {
+                        if (isInv || OpInv) {
                             loopInvariantSet.insert(llvm::dyn_cast < Value > ( & Inst));
                            
 
@@ -230,7 +230,7 @@ void visitaDomTree(DomTreeNodeBase < BasicBlock > * rn, SmallPtrSet < DomTreeNod
 
             istrToMove->removeFromParent();
 
-            istrToMove->insertBefore(preHeader->begin());
+            istrToMove->insertBefore(preHeader->getTerminator());
 
         }
     }
