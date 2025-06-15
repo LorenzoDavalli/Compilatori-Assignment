@@ -27,22 +27,26 @@ define dso_local void @_Z3funv() #0 {
 10:                                               ; preds = %3
   br label %11
 
-11:                                               ; preds = %16, %10
-  %.01 = phi i32 [ 0, %10 ], [ %17, %16 ]
+11:                                               ; preds = %20, %10
+  %.01 = phi i32 [ 0, %10 ], [ %21, %20 ]
   %12 = icmp slt i32 %.01, 15
-  br i1 %12, label %13, label %18
+  br i1 %12, label %13, label %22
 
 13:                                               ; preds = %11
   %14 = sext i32 %.01 to i64
-  %15 = getelementptr inbounds [20 x i32], ptr %2, i64 0, i64 %14
-  store i32 1, ptr %15, align 4
-  br label %16
+  %15 = getelementptr inbounds [20 x i32], ptr %1, i64 0, i64 %14
+  %16 = load i32, ptr %15, align 4
+  %17 = add nsw i32 %16, 1
+  %18 = sext i32 %.01 to i64
+  %19 = getelementptr inbounds [20 x i32], ptr %2, i64 0, i64 %18
+  store i32 %17, ptr %19, align 4
+  br label %20
 
-16:                                               ; preds = %13
-  %17 = add nsw i32 %.01, 1
+20:                                               ; preds = %13
+  %21 = add nsw i32 %.01, 1
   br label %11, !llvm.loop !8
 
-18:                                               ; preds = %11
+22:                                               ; preds = %11
   ret void
 }
 
