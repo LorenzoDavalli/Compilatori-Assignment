@@ -17,6 +17,7 @@
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/PointerLikeTypeTraits.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Transforms/Utils/Local.h"
 
 using namespace llvm;
 
@@ -345,8 +346,9 @@ struct TestPass : PassInfoMixin<TestPass> {
                 }
             }
         }
-
-        stampaCFG(&F);
+	
+	llvm::removeUnreachableBlocks(F);
+       	stampaCFG(&F);
 
         return PreservedAnalyses::all();
     }
