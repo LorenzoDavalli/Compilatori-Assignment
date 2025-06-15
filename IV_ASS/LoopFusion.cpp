@@ -7,10 +7,9 @@ void fun(){
                 v[i] = 1;
 
         }
-        //Verificare che hanno lo stesso rray di base
 
 
         for (int i = 0; i < 15; i++){
-                v2[i] = 1;
+                v2[i] = v[i] + 1;
         }
 }
