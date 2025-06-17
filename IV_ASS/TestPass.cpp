@@ -149,26 +149,25 @@ bool hasNegativeDistanceDependencies(Loop *L1, Loop *L2, DependenceInfo &DI, Sca
             }
         }
     }
+    
 
-    Value *array1;
-    Value *array2;
 
     for (auto Inst : L1Inst) { // filtriamo la lista sulle store del vettore
         Value *arrayElement = (dyn_cast<Instruction>(Inst))->getOperand(1);
         Type *t = arrayElement->getType();
-        if (t->isPointerTy()) {
-
-            array1 = dyn_cast<Instruction>(arrayElement)->getOperand(0);
+        if (!t->isPointerTy()) {
+        		L1Inst.erase(Inst);
         }
     }
 
     for (auto Inst : L2Inst) { // filtriamo la lista sulle load del vettore
         Value *arrayElement = (dyn_cast<Instruction>(Inst))->getOperand(0);
         Type *t = arrayElement->getType();
-        if (t->isPointerTy()) {
-            array2 = dyn_cast<Instruction>(arrayElement)->getOperand(0);
+        if (!t->isPointerTy()) {
+        		L2Inst.erase(Inst);
         }
     }
+    
 
     for (auto Inst1 : L1Inst) {
         for (auto Inst2 : L2Inst) {
